@@ -4,15 +4,15 @@ This plugin allows authentication against an LDAP server for The fascinator plat
 
 ## Configuration ##
 
-` "authentication": {
-            "type": "ldap",
+ "authentication": {
+             "type": "ldap",
              "ldap": {
-                 "baseURL": "ldap://localhost:389",
-                 "baseDN": "ou=people,o=Sample org,c=AU",
-                "idAttribute": "uid"
-            }
-     }`
-
+             "baseURL": "ldap://localhost:389",
+             "baseDN": "ou=people,o=Sample org,c=AU",
+             "idAttribute": "uid"
+             }
+ }
+ 
 **baseURL**
 
 The URL of the LDAP server.
