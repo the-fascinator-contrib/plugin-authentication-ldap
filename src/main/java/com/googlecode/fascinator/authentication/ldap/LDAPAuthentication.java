@@ -70,6 +70,12 @@ import org.slf4j.LoggerFactory;
  * <td><b>Yes</b></td>
  * <td>uid</td>
  * </tr>
+ * <tr>
+ * <td>ldap/ldapRoleAttribute</td>
+ * <td>The name of the LDAP attribute that contains the role values</td>
+ * <td><b>No</b></td>
+ * <td>objectClass</td>
+ * </tr>
  * 
  * </table>
  * 
@@ -85,6 +91,7 @@ import org.slf4j.LoggerFactory;
  *                "baseURL": "ldap://ldap.uq.edu.au:389",
  *                "baseDN": "ou=people,o=The University of Queensland,c=AU",
  *                "idAttribute": "uid"
+ *                "ldapRoleAttribute": "objectClass",
  *            }
  *        }
  * </pre>
@@ -105,7 +112,8 @@ import org.slf4j.LoggerFactory;
 public class LDAPAuthentication implements Authentication {
     
     /** Logging **/
-    private final Logger log = LoggerFactory.getLogger(LDAPAuthentication.class);
+    @SuppressWarnings("unused")
+	private final Logger log = LoggerFactory.getLogger(LDAPAuthentication.class);
     
     /** User object */
     private LDAPUser user_object;
@@ -169,9 +177,10 @@ public class LDAPAuthentication implements Authentication {
         String url = config.getString(null, "authentication", "ldap", "baseURL");
         String baseDN = config.getString(null, "authentication", "ldap", "baseDN");
         String idAttribute = config.getString(null, "authentication", "ldap", "idAttribute");
+		String ldapRoleAttribute = config.getString("objectClass", "authentication", "ldap", "ldapRoleAttribute");
 
         //Need to get these values from somewhere, ie the config file passed in
-        ldapAuth = new LdapAuthenticationHandler(url,baseDN,idAttribute);
+        ldapAuth = new LdapAuthenticationHandler(url, baseDN, ldapRoleAttribute, idAttribute);
     }
 
     @Override

@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Oliver Lucido and
  * @author Richard Hammond
+ * @author Mike Jones
  */
 public class LdapAuthenticationHandler {
 
@@ -58,13 +59,22 @@ public class LdapAuthenticationHandler {
 	/** LDAP Base DN */
 	private String baseDn;
 
+	/** Name of the LDAP attribute that defines the role */
+	private String ldapRoleAttr;
+
 	/** LDAP identifier attribute */
 	private String idAttr;
 
 	/** Base LDAP URL */
 	private String baseUrl;
 
-	private Map<String, List<String>> objectClassRolesMap;
+	/** Prefix for the LDAP query filter */
+	private String filterPrefix = "";
+
+	/** Suffix for the LDAP query filter */
+	private String filterSuffix = "";
+
+	private Map<String, List<String>> ldapRolesMap;
 
 	/**
 	 * Creates an LDAP authenticator for the specified server and base DN, using
@@ -76,7 +86,7 @@ public class LdapAuthenticationHandler {
 	 *            LDAP base DN
 	 */
 	public LdapAuthenticationHandler(String baseUrl, String baseDn) {
-		this(baseUrl, baseDn, "uid");
+		this(baseUrl, baseDn, "objectClass", "uid");
 	}
 
 	/**
@@ -91,10 +101,11 @@ public class LdapAuthenticationHandler {
 	 *            LDAP user identifier attribute
 	 */
 	public LdapAuthenticationHandler(String baseUrl, String baseDn,
-			String idAttr) {
+			String ldapRoleAttr, String idAttr) {
 		// Set public variables
 		this.baseDn = baseDn;
 		this.idAttr = idAttr;
+		this.ldapRoleAttr = ldapRoleAttr;
 		this.baseUrl = baseUrl;
 		// Initialise the LDAP environment
 		env = new Hashtable<String, String>();
@@ -112,15 +123,39 @@ public class LdapAuthenticationHandler {
 	 *            LDAP server URL
 	 * @param baseDn
 	 *            LDAP base DN
+	 * @param ldapRoleAttr
+	 *            LDAP role attribute
 	 * @param idAttr
 	 *            LDAP user identifier attribute
-	 * @param objectClassValue
-	 *            Value to look for against the objectClass
+	 * @param ldapRolesMap
+	 *            Maps relevant LDAP roles to Fascinator roles
 	 */
-	public LdapAuthenticationHandler(String baseUrl, String baseDn,
-			String idAttr, Map<String, List<String>> objectClassRolesMap) {
-		this(baseUrl, baseDn, idAttr);
-		this.objectClassRolesMap = objectClassRolesMap;
+	public LdapAuthenticationHandler(String baseUrl, String baseDn, String ldapRoleAttr,
+			String idAttr, Map<String, List<String>> ldapRolesMap) {
+		this(baseUrl, baseDn, ldapRoleAttr, idAttr);
+		this.ldapRolesMap = ldapRolesMap;
+	}
+
+	/**
+	 * Creates an LDAP authenticator for the specified server, base DN and given
+	 * identifier attribute
+	 * 
+	 * @param baseUrl
+	 *            LDAP server URL
+	 * @param baseDn
+	 *            LDAP base DN
+	 * @param ldapRoleAttr
+	 *            LDAP role attribute
+	 * @param idAttr
+	 *            LDAP user identifier attribute
+	 * @param ldapRolesMap
+	 *            Maps relevant LDAP roles to Fascinator roles
+	 */
+	public LdapAuthenticationHandler(String baseUrl, String baseDn, String ldapRoleAttr,
+			String idAttr, String filterPrefix, String filterSuffix, Map<String, List<String>> ldapRolesMap) {
+		this(baseUrl, baseDn, ldapRoleAttr, idAttr, ldapRolesMap);
+		this.filterPrefix = filterPrefix;
+		this.filterSuffix = filterSuffix;
 	}
 
 	/**
@@ -188,8 +223,7 @@ public class LdapAuthenticationHandler {
 	private String getDN(String username) {
 		try {
 			// Create a new environment since the original one has probably been
-			// authenticted
-			// (and rejected) against.
+			// authenticated (and rejected) against.
 			Hashtable<String, String> env1 = new Hashtable<String, String>();
 			env1.put(Context.INITIAL_CONTEXT_FACTORY,
 					"com.sun.jndi.ldap.LdapCtxFactory");
@@ -201,10 +235,11 @@ public class LdapAuthenticationHandler {
 			sc.setSearchScope(SearchControls.SUBTREE_SCOPE);
 
 			// Create the filter
-			String filter = "(" + idAttr + "=" + username + ")";
+			String filter = "(" + filterPrefix + idAttr + "=" + username + filterSuffix + ")";
 
 			// Do the search
 			NamingEnumeration<SearchResult> ne = dc.search(baseDn, filter, sc);
+			log.trace(String.format("LDAP search, baseDn: %s, filter: %s", baseDn, filter));
 
 			if (ne.hasMore()) {
 				SearchResult sr = ne.next();
@@ -222,7 +257,43 @@ public class LdapAuthenticationHandler {
 	}
 
 	/**
-	 * Tries to find the value of the given attribute
+	 * Performs a search of LDAP
+	 * @param username The username to be used in the search
+	 * @param dc The directory context to use for the search
+	 * @return An enumeration containing the search results
+	 * @throws NamingException
+	 */
+	private NamingEnumeration<SearchResult> performLdapSearch(String username, DirContext dc) throws NamingException {
+		SearchControls sc = new SearchControls();
+		sc.setSearchScope(SearchControls.SUBTREE_SCOPE);
+
+		String filter = "(" + filterPrefix + idAttr + "=" + username + filterSuffix + ")";
+
+		NamingEnumeration<SearchResult> ne = dc.search(baseDn, filter, sc);
+		log.trace(String.format("performing LDAP search using baseDn: %s, filter: %s", baseDn, filter));
+		return ne;
+	}
+
+	/**
+	 * Get the value of an attribute from a search result
+	 * @param attrName The name of the attribute that we're interested in
+	 * @param sr The search result
+	 * @return The attribute value
+	 * @throws NamingException
+	 */
+	private String getAttrValue(String attrName, SearchResult sr) throws NamingException {
+		// Get all attributes
+		Attributes entry = sr.getAttributes();
+
+		// Get the attribute value and return
+		Attribute attrValues = entry.get(attrName);
+		String[] strArr = attrValues.toString().split(":");
+		return strArr[1].trim();
+	}
+
+	/**
+	 * Tries to find the value of the given attribute.
+	 * Note that this method only uses the first search result.
 	 * 
 	 * @param username
 	 *            a username
@@ -231,39 +302,61 @@ public class LdapAuthenticationHandler {
 	 * @return the value of the attribute, or an empty string
 	 */
 	public String getAttr(String username, String attrName) {
+		String val = "";
 		try {
 			DirContext dc = new InitialDirContext(env);
-
-			SearchControls sc = new SearchControls();
-			sc.setSearchScope(SearchControls.SUBTREE_SCOPE);
-
-			String filter = "(" + idAttr + "=" + username + ")";
-
-			NamingEnumeration<SearchResult> ne = dc.search(baseDn, filter, sc);
+			NamingEnumeration<SearchResult> ne = performLdapSearch(username, dc);
 
 			if (ne.hasMore()) {
-				// Get the attributes
-				SearchResult result = ne.next();
-				Attributes entry = result.getAttributes();
-				// Get the attribute value and return
-				Attribute objectClasses = entry.get(attrName);
-				String[] strArr = objectClasses.toString().split(":");
-
-				ne.close();
-				dc.close();
-				return strArr[1].trim();
-			} else {
-				ne.close();
-				dc.close();
+				val = getAttrValue(attrName, ne.next());
 			}
+
+			ne.close();
+			dc.close();
 		} catch (NamingException ne) {
 			log.warn("Failed LDAP lookup", ne);
 		}
-		return "";
+
+		log.trace(String.format("getAttr search result: %s", val));
+		return val;
 	}
 
 	/**
-	 * Searches through the objectClass values and tries to match the given
+	 * Tries to find the value(s) of the given attribute.
+	 * Note that this method uses all search results.
+	 * 
+	 * @param username
+	 *            a username
+	 * @param attrName
+	 *            the name of the attribute to find
+	 * @return a list of values for the attribute, or an empty list
+	 */
+	public List<String> getAllAttrs(String username, String attrName) {
+		List<String> resultList = new ArrayList<String>();
+
+		try {
+			DirContext dc = new InitialDirContext(env);
+			NamingEnumeration<SearchResult> ne = performLdapSearch(username, dc);
+
+			while (ne.hasMore()) {
+				resultList.add(getAttrValue(attrName, ne.next()));
+			}
+
+			ne.close();
+			dc.close();
+		} catch (NamingException ne) {
+			log.warn("Failed LDAP lookup", ne);
+		}
+
+		if (log.isTraceEnabled()) {
+			log.trace("getAllAttrs search result: " + resultList);
+		}
+
+		return resultList;
+	}
+
+	/**
+	 * Searches through the role attribute values and tries to match the given
 	 * string.
 	 * 
 	 * @param username
@@ -275,10 +368,13 @@ public class LdapAuthenticationHandler {
 	 */
 	public boolean testIfInObjectClass(String username, String testSubj) {
 		try {
-			String[] allVals = getAttr(username, "objectClass").split(",");
-			for (int i = 0; i < allVals.length; i++) {
-				if (testSubj.equals(allVals[i].trim())) {
-					return true;
+			List<String> attrValues = getAllAttrs(username, ldapRoleAttr);
+			for (String attrValue : attrValues) {
+				String[] allVals = attrValue.split(",");
+				for (int i = 0; i < allVals.length; i++) {
+					if (testSubj.equals(allVals[i].trim())) {
+						return true;
+					}
 				}
 			}
 		} catch (Exception e) {
@@ -290,13 +386,18 @@ public class LdapAuthenticationHandler {
 
 	public List<String> getRoles(String username) {
 		Set<String> roles = new LinkedHashSet<String>();
-		String[] allVals = getAttr(username, "objectClass").split(",");
-		for (String objectClass : allVals) {
-			List<String> roleList = objectClassRolesMap.get(objectClass.trim());
-			if (roleList != null) {
-				roles.addAll(roleList);
+		List<String> attrValues = getAllAttrs(username, ldapRoleAttr);
+		for (String attrValue : attrValues) {
+			String[] allVals = attrValue.split(",");
+			for (String objectClass : allVals) {
+				List<String> roleList = ldapRolesMap.get(objectClass.trim());
+				if (roleList != null) {
+					roles.addAll(roleList);
+				}
 			}
 		}
+
+		log.trace(String.format("getRoles found %d roles for username: %s", roles.size(), username));
 		return new ArrayList<String>(roles);
 
 	}
