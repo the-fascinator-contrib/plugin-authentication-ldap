@@ -177,10 +177,9 @@ public class LDAPAuthentication implements Authentication {
         String url = config.getString(null, "authentication", "ldap", "baseURL");
         String baseDN = config.getString(null, "authentication", "ldap", "baseDN");
         String idAttribute = config.getString(null, "authentication", "ldap", "idAttribute");
-		String ldapRoleAttribute = config.getString("objectClass", "authentication", "ldap", "ldapRoleAttribute");
 
         //Need to get these values from somewhere, ie the config file passed in
-        ldapAuth = new LdapAuthenticationHandler(url, baseDN, ldapRoleAttribute, idAttribute);
+        ldapAuth = new LdapAuthenticationHandler(url, baseDN, "objectClass", idAttribute);
     }
 
     @Override

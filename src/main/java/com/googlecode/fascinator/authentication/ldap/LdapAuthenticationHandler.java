@@ -97,6 +97,8 @@ public class LdapAuthenticationHandler {
 	 *            LDAP server URL
 	 * @param baseDn
 	 *            LDAP base DN
+	 * @param ldapRoleAttr
+	 *            Name of the LDAP attribute that defines the role
 	 * @param idAttr
 	 *            LDAP user identifier attribute
 	 */
@@ -124,7 +126,7 @@ public class LdapAuthenticationHandler {
 	 * @param baseDn
 	 *            LDAP base DN
 	 * @param ldapRoleAttr
-	 *            LDAP role attribute
+	 *            Name of the LDAP attribute that defines the role
 	 * @param idAttr
 	 *            LDAP user identifier attribute
 	 * @param ldapRolesMap
@@ -145,7 +147,7 @@ public class LdapAuthenticationHandler {
 	 * @param baseDn
 	 *            LDAP base DN
 	 * @param ldapRoleAttr
-	 *            LDAP role attribute
+	 *            Name of the LDAP attribute that defines the role
 	 * @param idAttr
 	 *            LDAP user identifier attribute
 	 * @param ldapRolesMap
@@ -384,6 +386,11 @@ public class LdapAuthenticationHandler {
 		return false;
 	}
 
+	/**
+	 * Get the list of roles that the user is a member of. Maps LDAP roles to Fascinator roles.
+	 * @param username The username that identifies the user
+	 * @return A list of Fascinator role names
+	 */
 	public List<String> getRoles(String username) {
 		Set<String> roles = new LinkedHashSet<String>();
 		List<String> attrValues = getAllAttrs(username, ldapRoleAttr);
