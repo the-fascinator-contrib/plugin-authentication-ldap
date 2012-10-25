@@ -3,13 +3,13 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.googlecode.the-fascinator.plugins</groupId>
     <artifactId>plugin-authentication-ldap</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <name>The Fascinator - Plugin - Authentication - LDAP</name>
-    <url></url>
+    <url />
     <parent>
         <groupId>com.googlecode.the-fascinator</groupId>
         <artifactId>fascinator-plugins</artifactId>
-        <version>1.1.2-SNAPSHOT</version>
+        <version>1.1.2</version>
     </parent>
     <properties>
     	<fascinator.version>1.1.2-SNAPSHOT</fascinator.version>
@@ -18,17 +18,17 @@
         <dependency>
             <groupId>com.googlecode.the-fascinator</groupId>
             <artifactId>fascinator-common</artifactId>
-            <version>${fascinator.version}</version>
+            <version>1.1.2</version>
         </dependency>
         <dependency>
             <groupId>com.googlecode.the-fascinator</groupId>
             <artifactId>fascinator-plugin-api</artifactId>
-            <version>${fascinator.version}</version>
+            <version>1.1.2</version>
         </dependency>
          <dependency>
             <groupId>com.googlecode.the-fascinator</groupId>
             <artifactId>fascinator-vocabulary</artifactId>
-            <version>${fascinator.version}</version>
+            <version>1.1.2</version>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
@@ -42,7 +42,7 @@
     <scm>
     <url>https://github.com/the-fascinator-contrib/plugin-authentication-ldap.git</url>
     <developerConnection>scm:git:https://github.com/the-fascinator-contrib/plugin-authentication-ldap.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>plugin-authentication-ldap-1.0</tag>
   </scm>
     <repositories>
         <repository>
