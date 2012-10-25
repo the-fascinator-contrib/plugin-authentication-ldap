@@ -39,7 +39,11 @@
             <artifactId>junit</artifactId>
         </dependency>
     </dependencies>
-    
+    <scm>
+    <url>https://github.com/the-fascinator-contrib/plugin-authentication-ldap.git</url>
+    <developerConnection>scm:git:https://github.com/the-fascinator-contrib/plugin-authentication-ldap.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
     <repositories>
         <repository>
             <id>fascinator-snapshots</id>
