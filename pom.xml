@@ -5,7 +5,7 @@
     <artifactId>plugin-authentication-ldap</artifactId>
     <version>1.1-SNAPSHOT</version>
     <name>The Fascinator - Plugin - Authentication - LDAP</name>
-    <url />
+    <url>https://sites.google.com/site/fascinatorhome/home/documentation/technical/documents/plugins/authentication/ldap-authentication</url>
     <parent>
         <groupId>com.googlecode.the-fascinator</groupId>
         <artifactId>fascinator-plugins</artifactId>
@@ -44,6 +44,14 @@
     <developerConnection>scm:git:https://github.com/the-fascinator-contrib/plugin-authentication-ldap.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
+  <ciManagement>
+      <system>jenkins</system>
+      <url>https://dev.redboxresearchdata.com.au/jenkins/view/Plugins%20-%20Authentication/job/Authentication%20-%20LDAP/</url>
+  </ciManagement>
+  <issueManagement>
+      <system>github</system>
+      <url>https://github.com/the-fascinator-contrib/plugin-authentication-ldap/issues</url>
+  </issueManagement>
     <repositories>
         <repository>
             <id>fascinator-snapshots</id>
