@@ -102,7 +102,7 @@ import org.slf4j.LoggerFactory;
  *            "ldap": {
  *                "baseURL": "ldap://ldap.uq.edu.au:389",
  *                "baseDN": "ou=people,o=The University of Queensland,c=AU",
- *                "ldapSecurityPrincipal": "cn=SomeName,ou=SomeOrgUnit,dn=uq,dn=edu,dn=au",
+ *                "ldapSecurityPrincipal": "cn=SomeName,ou=SomeOrgUnit,dn=sample,dn=edu,dn=au",
  *                "ldapSecurityCredentials": "********",
  *                "baseDN": "ou=people,o=The University of Queensland,c=AU",
  *                "idAttribute": "uid"
