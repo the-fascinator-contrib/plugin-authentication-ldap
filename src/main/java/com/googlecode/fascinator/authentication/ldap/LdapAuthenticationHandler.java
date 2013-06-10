@@ -120,7 +120,7 @@ public class LdapAuthenticationHandler {
 		this.idAttr = idAttr;
 		this.ldapRoleAttr = ldapRoleAttr;
 		this.baseUrl = baseUrl;
-    this.ldapSecurityPrincipal = ldapSecurityPrincipal;
+		this.ldapSecurityPrincipal = ldapSecurityPrincipal;
     this.ldapSecurityCredentials = ldapSecurityCredentials;
 		// Initialise the LDAP environment
 		env = new Hashtable<String, String>();
