@@ -66,7 +66,7 @@ import org.slf4j.LoggerFactory;
  * </tr>
  * <tr>
  * <td>ldap/ldapSecurityPrincipal</td>
- * <td>Security Principal</td>
+ * <td>Security Principal for non-anonymous binding</td>
  * <td><b>Yes</b></td>
  * <td>cn=JohnDoe,ou=Sample Account,dc=sample,dc=edu,dc=au</td>
  * </tr>
