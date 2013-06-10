@@ -9,6 +9,8 @@ This plugin allows authentication against an LDAP server for The fascinator plat
 		"ldap": {
 			"baseURL": "ldap://localhost:389",
 			"baseDN": "ou=people,o=Sample org,c=AU",
+      "ldapSecurityPrincipal": "cn=JohnDoe,ou=Some Account,dc=sample,dc=edu,dc=au"
+      "ldapCredentials": "<principal-password>"
 			"idAttribute": "uid"
 		}
 	}
@@ -23,8 +25,9 @@ The base Distinguished Name to search under.
 
 **idAttribute**
 
-The name of the attribute for which the username will be searched under. This will be appended to the end of the baseDN when querying the LDAP server.
-Using the example configuration above the query string will be:
+The name of the attribute for which the username will be searched under. This
+will be appended to the end of the baseDN when querying the LDAP server.  Using
+the example configuration above the query string will be:
 
 	ou=people,o=Sample org,c=AU,uid=specifiedUsername
 
