@@ -128,7 +128,7 @@ public class LDAPAuthentication implements Authentication {
     
     /** Logging **/
     @SuppressWarnings("unused")
-	private final Logger log = LoggerFactory.getLogger(LDAPAuthentication.class);
+    private final Logger log = LoggerFactory.getLogger(LDAPAuthentication.class);
     
     /** User object */
     private LDAPUser user_object;

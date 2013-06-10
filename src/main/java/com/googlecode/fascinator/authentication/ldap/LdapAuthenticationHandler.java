@@ -69,7 +69,7 @@ public class LdapAuthenticationHandler {
 	private String baseUrl;
   
   /* LDAP security principal */
-  private String ldapSecurityPrincipal;
+	private String ldapSecurityPrincipal;
   
   /* LDAP security credentials */
   private String ldapSecurityCredentials;
@@ -121,15 +121,15 @@ public class LdapAuthenticationHandler {
 		this.ldapRoleAttr = ldapRoleAttr;
 		this.baseUrl = baseUrl;
 		this.ldapSecurityPrincipal = ldapSecurityPrincipal;
-    this.ldapSecurityCredentials = ldapSecurityCredentials;
+		this.ldapSecurityCredentials = ldapSecurityCredentials;
 		// Initialise the LDAP environment
 		env = new Hashtable<String, String>();
 		env.put(Context.INITIAL_CONTEXT_FACTORY,
 				"com.sun.jndi.ldap.LdapCtxFactory");
 		env.put(Context.PROVIDER_URL, baseUrl);
 		env.put(Context.SECURITY_AUTHENTICATION, "simple");
-    env.put(Context.SECURITY_PRINCIPAL, ldapSecurityPrincipal);
-    env.put(Context.SECURITY_CREDENTIALS, ldapSecurityCredentials);
+		env.put(Context.SECURITY_PRINCIPAL, ldapSecurityPrincipal);
+ 		env.put(Context.SECURITY_CREDENTIALS, ldapSecurityCredentials);
 
 	}
 
@@ -153,8 +153,8 @@ public class LdapAuthenticationHandler {
 	 *            Maps relevant LDAP roles to Fascinator roles
 	 */
 	public LdapAuthenticationHandler(String baseUrl, String baseDn, 
-      String ldapSecurityPrincipal,
-      String ldapSecurityCredentials,
+			String ldapSecurityPrincipal,
+			String ldapSecurityCredentials,
       String ldapRoleAttr,
 			String idAttr, Map<String, List<String>> ldapRolesMap) {
 		this(baseUrl, baseDn, ldapSecurityPrincipal, ldapSecurityCredentials, ldapRoleAttr, idAttr);
@@ -181,8 +181,8 @@ public class LdapAuthenticationHandler {
 	 *            Maps relevant LDAP roles to Fascinator roles
 	 */
 	public LdapAuthenticationHandler(String baseUrl, String baseDn, 
-      String ldapSecurityPrincipal,
-      String ldapSecurityCredentials,
+			String ldapSecurityPrincipal,
+ 			String ldapSecurityCredentials,
       String ldapRoleAttr,
 			String idAttr, String filterPrefix, String filterSuffix, Map<String, List<String>> ldapRolesMap) {
 		this(baseUrl, baseDn, ldapSecurityPrincipal, ldapSecurityCredentials, ldapRoleAttr, idAttr, ldapRolesMap);
