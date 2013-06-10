@@ -23,6 +23,14 @@ The URL of the LDAP server.
 
 The base Distinguished Name to search under.
 
+**ldapSecurityPrincipal**
+
+The Security Principal to use for non-anonymous binding
+
+**ldapSecurityCredentials**
+
+Credentials for Security Principal
+
 **idAttribute**
 
 The name of the attribute for which the username will be searched under. This
