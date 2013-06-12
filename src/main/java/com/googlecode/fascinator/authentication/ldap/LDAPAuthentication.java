@@ -65,6 +65,18 @@ import org.slf4j.LoggerFactory;
  * <td>ou=people,o=The University of Queensland,c=AU</td>
  * </tr>
  * <tr>
+ * <td>ldap/ldapSecurityPrincipal</td>
+ * <td>Security Principal for non-anonymous binding</td>
+ * <td><b>Yes</b></td>
+ * <td>cn=JohnDoe,ou=Sample Account,dc=sample,dc=edu,dc=au</td>
+ * </tr>
+ * <tr>
+ * <td>ldap/ldapSecurityCredentials</td>
+ * <td>Credentials for ldapSecurityPrincipal</td>
+ * <td><b>Yes</b></td>
+ * <td>*******</td>
+ * </tr>
+ * <tr>
  * <td>ldap/idAttribute</td>
  * <td>The name of the attribute for which the username will be searched under</td>
  * <td><b>Yes</b></td>
@@ -90,6 +102,9 @@ import org.slf4j.LoggerFactory;
  *            "ldap": {
  *                "baseURL": "ldap://ldap.uq.edu.au:389",
  *                "baseDN": "ou=people,o=The University of Queensland,c=AU",
+ *                "ldapSecurityPrincipal": "cn=SomeName,ou=SomeOrgUnit,dn=sample,dn=edu,dn=au",
+ *                "ldapSecurityCredentials": "********",
+ *                "baseDN": "ou=people,o=The University of Queensland,c=AU",
  *                "idAttribute": "uid"
  *                "ldapRoleAttribute": "objectClass",
  *            }
@@ -113,7 +128,7 @@ public class LDAPAuthentication implements Authentication {
     
     /** Logging **/
     @SuppressWarnings("unused")
-	private final Logger log = LoggerFactory.getLogger(LDAPAuthentication.class);
+    private final Logger log = LoggerFactory.getLogger(LDAPAuthentication.class);
     
     /** User object */
     private LDAPUser user_object;
@@ -177,9 +192,11 @@ public class LDAPAuthentication implements Authentication {
         String url = config.getString(null, "authentication", "ldap", "baseURL");
         String baseDN = config.getString(null, "authentication", "ldap", "baseDN");
         String idAttribute = config.getString(null, "authentication", "ldap", "idAttribute");
-
+        String secPrinc = config.getString(null, "authentication", "ldap", "ldapSecurityPrincipal");
+        String secCreds = config.getString(null, "authentication", "ldap", "ldapSecurityCredentials");
+        
         //Need to get these values from somewhere, ie the config file passed in
-        ldapAuth = new LdapAuthenticationHandler(url, baseDN, "objectClass", idAttribute);
+        ldapAuth = new LdapAuthenticationHandler(url, baseDN, secPrinc, secCreds, "objectClass", idAttribute);
     }
 
     @Override
