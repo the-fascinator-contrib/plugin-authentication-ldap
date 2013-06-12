@@ -128,8 +128,10 @@ public class LdapAuthenticationHandler {
 				"com.sun.jndi.ldap.LdapCtxFactory");
 		env.put(Context.PROVIDER_URL, baseUrl);
 		env.put(Context.SECURITY_AUTHENTICATION, "simple");
-		env.put(Context.SECURITY_PRINCIPAL, ldapSecurityPrincipal);
- 		env.put(Context.SECURITY_CREDENTIALS, ldapSecurityCredentials);
+		if (ldapSecurityPrincipal != "") {
+			env.put(Context.SECURITY_PRINCIPAL, ldapSecurityPrincipal);
+ 			env.put(Context.SECURITY_CREDENTIALS, ldapSecurityCredentials);
+		}
 
 	}
 
