@@ -10,7 +10,7 @@ This plugin allows authentication against an LDAP server for The fascinator plat
 			"baseURL": "ldap://localhost:389",
 			"baseDN": "ou=people,o=Sample org,c=AU",
 			"ldapSecurityPrincipal": "cn=JohnDoe,ou=Some Account,dc=sample,dc=edu,dc=au"
-			"ldapCredentials": "<principal-password>"
+			"ldapSecurityCredentials": "<principal-password>"
 			"idAttribute": "uid"
 		}
 	}
@@ -25,11 +25,13 @@ The base Distinguished Name to search under.
 
 **ldapSecurityPrincipal**
 
-The Security Principal to use for non-anonymous binding
+The Security Principal of the service account used to bind to the LDAP server.
+(Leave empty to bind anonymously.)
 
 **ldapSecurityCredentials**
 
-Credentials for Security Principal
+Credentials for the service account used to bind to the LDAP server.
+(Leave empty to bind anonymously.)
 
 **idAttribute**
 
