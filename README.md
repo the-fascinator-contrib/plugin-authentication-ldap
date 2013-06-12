@@ -10,7 +10,7 @@ This plugin allows authentication against an LDAP server for The fascinator plat
 			"baseURL": "ldap://localhost:389",
 			"baseDN": "ou=people,o=Sample org,c=AU",
 			"ldapSecurityPrincipal": "cn=JohnDoe,ou=Some Account,dc=sample,dc=edu,dc=au"
-			"ldapSecurityCredentials": "<principal-password>"
+			"ldapSecurityCredentials": "******"
 			"idAttribute": "uid"
 		}
 	}
