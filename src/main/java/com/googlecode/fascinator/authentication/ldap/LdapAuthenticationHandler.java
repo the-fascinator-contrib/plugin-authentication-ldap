@@ -68,11 +68,11 @@ public class LdapAuthenticationHandler {
 	/** Base LDAP URL */
 	private String baseUrl;
   
-  /* LDAP security principal */
+	/* LDAP security principal */
 	private String ldapSecurityPrincipal;
   
-  /* LDAP security credentials */
-  private String ldapSecurityCredentials;
+	/* LDAP security credentials */
+	private String ldapSecurityCredentials;
 
 	/** Prefix for the LDAP query filter */
 	private String filterPrefix = "";
