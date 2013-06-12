@@ -113,8 +113,8 @@ public class LdapAuthenticationHandler {
 	 *            LDAP user identifier attribute
 	 */
 	public LdapAuthenticationHandler(String baseUrl, String baseDn,
-      String ldapSecurityPrincipal, String ldapSecurityCredentials,
-			String ldapRoleAttr, String idAttr) {
+      		String ldapSecurityPrincipal, String ldapSecurityCredentials,
+		String ldapRoleAttr, String idAttr) {
 		// Set public variables
 		this.baseDn = baseDn;
 		this.idAttr = idAttr;
@@ -157,7 +157,7 @@ public class LdapAuthenticationHandler {
 	public LdapAuthenticationHandler(String baseUrl, String baseDn, 
 			String ldapSecurityPrincipal,
 			String ldapSecurityCredentials,
-      String ldapRoleAttr,
+      			String ldapRoleAttr,
 			String idAttr, Map<String, List<String>> ldapRolesMap) {
 		this(baseUrl, baseDn, ldapSecurityPrincipal, ldapSecurityCredentials, ldapRoleAttr, idAttr);
 		this.ldapRolesMap = ldapRolesMap;
@@ -185,7 +185,7 @@ public class LdapAuthenticationHandler {
 	public LdapAuthenticationHandler(String baseUrl, String baseDn, 
 			String ldapSecurityPrincipal,
  			String ldapSecurityCredentials,
-      String ldapRoleAttr,
+      			String ldapRoleAttr,
 			String idAttr, String filterPrefix, String filterSuffix, Map<String, List<String>> ldapRolesMap) {
 		this(baseUrl, baseDn, ldapSecurityPrincipal, ldapSecurityCredentials, ldapRoleAttr, idAttr, ldapRolesMap);
 		this.filterPrefix = filterPrefix;
