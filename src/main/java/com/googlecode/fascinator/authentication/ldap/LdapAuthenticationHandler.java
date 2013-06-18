@@ -67,6 +67,12 @@ public class LdapAuthenticationHandler {
 
 	/** Base LDAP URL */
 	private String baseUrl;
+  
+	/* LDAP security principal */
+	private String ldapSecurityPrincipal;
+  
+	/* LDAP security credentials */
+	private String ldapSecurityCredentials;
 
 	/** Prefix for the LDAP query filter */
 	private String filterPrefix = "";
@@ -85,8 +91,8 @@ public class LdapAuthenticationHandler {
 	 * @param baseDn
 	 *            LDAP base DN
 	 */
-	public LdapAuthenticationHandler(String baseUrl, String baseDn) {
-		this(baseUrl, baseDn, "objectClass", "uid");
+	public LdapAuthenticationHandler(String baseUrl, String baseDn, String ldapSecurityPrincipal, String ldapSecurityCredentials) {
+		this(baseUrl, baseDn, ldapSecurityPrincipal, ldapSecurityCredentials, "objectClass", "uid");
 	}
 
 	/**
@@ -97,24 +103,36 @@ public class LdapAuthenticationHandler {
 	 *            LDAP server URL
 	 * @param baseDn
 	 *            LDAP base DN
+	 * @param ldapSecurityPrincipal
+	 *            LDAP Security Principal
+	 * @param ldapSecurityCredentials
+	 *            Credentials for Security Principal
 	 * @param ldapRoleAttr
 	 *            Name of the LDAP attribute that defines the role
 	 * @param idAttr
 	 *            LDAP user identifier attribute
 	 */
 	public LdapAuthenticationHandler(String baseUrl, String baseDn,
-			String ldapRoleAttr, String idAttr) {
+      		String ldapSecurityPrincipal, String ldapSecurityCredentials,
+		String ldapRoleAttr, String idAttr) {
 		// Set public variables
 		this.baseDn = baseDn;
 		this.idAttr = idAttr;
 		this.ldapRoleAttr = ldapRoleAttr;
 		this.baseUrl = baseUrl;
+		this.ldapSecurityPrincipal = ldapSecurityPrincipal;
+		this.ldapSecurityCredentials = ldapSecurityCredentials;
 		// Initialise the LDAP environment
 		env = new Hashtable<String, String>();
 		env.put(Context.INITIAL_CONTEXT_FACTORY,
 				"com.sun.jndi.ldap.LdapCtxFactory");
 		env.put(Context.PROVIDER_URL, baseUrl);
 		env.put(Context.SECURITY_AUTHENTICATION, "simple");
+		if (!ldapSecurityPrincipal.equals("") ) {
+			env.put(Context.SECURITY_PRINCIPAL, ldapSecurityPrincipal);
+ 			env.put(Context.SECURITY_CREDENTIALS, ldapSecurityCredentials);
+		}
+
 	}
 
 	/**
@@ -125,6 +143,10 @@ public class LdapAuthenticationHandler {
 	 *            LDAP server URL
 	 * @param baseDn
 	 *            LDAP base DN
+ 	 * @param ldapSecurityPrincipal
+	 *            LDAP Security Principal
+	 * @param ldapSecurityCredentials
+	 *            Credentials for Security Principal
 	 * @param ldapRoleAttr
 	 *            Name of the LDAP attribute that defines the role
 	 * @param idAttr
@@ -132,9 +154,12 @@ public class LdapAuthenticationHandler {
 	 * @param ldapRolesMap
 	 *            Maps relevant LDAP roles to Fascinator roles
 	 */
-	public LdapAuthenticationHandler(String baseUrl, String baseDn, String ldapRoleAttr,
+	public LdapAuthenticationHandler(String baseUrl, String baseDn, 
+			String ldapSecurityPrincipal,
+			String ldapSecurityCredentials,
+      			String ldapRoleAttr,
 			String idAttr, Map<String, List<String>> ldapRolesMap) {
-		this(baseUrl, baseDn, ldapRoleAttr, idAttr);
+		this(baseUrl, baseDn, ldapSecurityPrincipal, ldapSecurityCredentials, ldapRoleAttr, idAttr);
 		this.ldapRolesMap = ldapRolesMap;
 	}
 
@@ -146,6 +171,10 @@ public class LdapAuthenticationHandler {
 	 *            LDAP server URL
 	 * @param baseDn
 	 *            LDAP base DN
+ 	 * @param ldapSecurityPrincipal
+	 *            LDAP Security Principal
+	 * @param ldapSecurityCredentials
+	 *            Credentials for Security Principal
 	 * @param ldapRoleAttr
 	 *            Name of the LDAP attribute that defines the role
 	 * @param idAttr
@@ -153,9 +182,12 @@ public class LdapAuthenticationHandler {
 	 * @param ldapRolesMap
 	 *            Maps relevant LDAP roles to Fascinator roles
 	 */
-	public LdapAuthenticationHandler(String baseUrl, String baseDn, String ldapRoleAttr,
+	public LdapAuthenticationHandler(String baseUrl, String baseDn, 
+			String ldapSecurityPrincipal,
+ 			String ldapSecurityCredentials,
+      			String ldapRoleAttr,
 			String idAttr, String filterPrefix, String filterSuffix, Map<String, List<String>> ldapRolesMap) {
-		this(baseUrl, baseDn, ldapRoleAttr, idAttr, ldapRolesMap);
+		this(baseUrl, baseDn, ldapSecurityPrincipal, ldapSecurityCredentials, ldapRoleAttr, idAttr, ldapRolesMap);
 		this.filterPrefix = filterPrefix;
 		this.filterSuffix = filterSuffix;
 	}
@@ -188,7 +220,7 @@ public class LdapAuthenticationHandler {
 			ctx.close();
 			return true;
 		} catch (NamingException ne) {
-			log.warn("Failed LDAP lookup", ne);
+			log.warn("Failed LDAP lookup doAuthenticate", ne);
 		}
 		return false;
 	}
@@ -253,7 +285,7 @@ public class LdapAuthenticationHandler {
 				dc.close();
 			}
 		} catch (NamingException ne) {
-			log.warn("Failed LDAP lookup", ne);
+			log.warn("Failed LDAP lookup getDN", ne);
 		}
 		return "";
 	}
@@ -316,7 +348,9 @@ public class LdapAuthenticationHandler {
 			ne.close();
 			dc.close();
 		} catch (NamingException ne) {
-			log.warn("Failed LDAP lookup", ne);
+			log.warn("Failed LDAP lookup getAttr", ne);
+			log.warn("username:", username);
+			log.warn("attrName:", attrName);
 		}
 
 		log.trace(String.format("getAttr search result: %s", val));
@@ -347,9 +381,10 @@ public class LdapAuthenticationHandler {
 			ne.close();
 			dc.close();
 		} catch (NamingException ne) {
-			log.warn("Failed LDAP lookup", ne);
+			log.warn("Failed LDAP lookup getAllAttrs" + username, ne);
 		}
 
+			log.trace("getAllAttrs search result: " + resultList);
 		if (log.isTraceEnabled()) {
 			log.trace("getAllAttrs search result: " + resultList);
 		}
