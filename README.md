@@ -23,6 +23,14 @@ The URL of the LDAP server.
 
 The base Distinguished Name to search under.
 
+**idAttribute**
+
+The name of the attribute for which the username will be searched under. This
+will be appended to the end of the baseDN when querying the LDAP server.  Using
+the example configuration above the query string will be:
+
+	ou=people,o=Sample org,c=AU,uid=specifiedUsername
+	
 **ldapSecurityPrincipal**
 
 The Security Principal of the service account used to bind to the LDAP server.
@@ -33,11 +41,5 @@ The Security Principal of the service account used to bind to the LDAP server.
 Credentials for the service account used to bind to the LDAP server.
 (Leave empty to bind anonymously.)
 
-**idAttribute**
 
-The name of the attribute for which the username will be searched under. This
-will be appended to the end of the baseDN when querying the LDAP server.  Using
-the example configuration above the query string will be:
-
-	ou=people,o=Sample org,c=AU,uid=specifiedUsername
 
