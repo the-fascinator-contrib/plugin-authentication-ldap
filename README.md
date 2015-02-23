@@ -41,5 +41,18 @@ The Security Principal of the service account used to bind to the LDAP server.
 Credentials for the service account used to bind to the LDAP server.
 (Leave empty to bind anonymously.)
 
+** userAttributes **
 
+Optional list of attributes that will be retrieved and added to the User object upon login. Leave unspecified if not needed.
 
+** displayNameAttributes **
+
+Optional list of attributes that will compose the display name, order matters. Leave unspecified if not needed.
+
+** displayNameDelimiter **
+
+Optional delimiter that will be used when composing the display name. Defaults to ' '. Leave unspecified if not needed.
+
+** useSystemCredForAttributes **
+
+Optional flag indicating the intention to use of system credential when retrieving user attributes. Defaults to false. Leave unspecified if not needed.
