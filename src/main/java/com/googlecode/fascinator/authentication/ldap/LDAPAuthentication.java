@@ -122,6 +122,8 @@ import org.slf4j.LoggerFactory;
  * @author Greg Pendlebury
  * and
  * @author Richard Hammond
+ * and
+ * @author Shilo Banihit
  */
 
 public class LDAPAuthentication implements Authentication {
@@ -135,6 +137,18 @@ public class LDAPAuthentication implements Authentication {
     
     /** Ldap authentication class */
     private LdapAuthenticationHandler ldapAuth;
+    
+    /** Optional attributes that will be retrieved upon successful login **/
+    private List<String> userAttributes;
+    
+    /** Optional list of attributes that will compose the display name, order matters **/
+    private List<String> displayNameAttributes;
+    
+    /** Optional delimiter that will be used when composing the display name */
+    private String displayNameDelimiter;
+    
+    /** Optional flag indicating the intention to use of system credential when retrieving user attributes */
+    private boolean useSystemCredForAttributes;
 
     @Override
     public String getId() {
@@ -194,7 +208,10 @@ public class LDAPAuthentication implements Authentication {
         String idAttribute = config.getString(null, "authentication", "ldap", "idAttribute");
         String secPrinc = config.getString(null, "authentication", "ldap", "ldapSecurityPrincipal");
         String secCreds = config.getString(null, "authentication", "ldap", "ldapSecurityCredentials");
-        
+        userAttributes = config.getStringList("authentication", "ldap", "userAttributes");
+        displayNameAttributes = config.getStringList("authentication", "ldap", "displayNameAttributes");
+        displayNameDelimiter = config.getString(" ", "authentication", "ldap", "displayNameDelimiter");
+        useSystemCredForAttributes = config.getBoolean(new Boolean(false), "authentication", "ldap", "useSystemCredForAttributes");
         //Need to get these values from somewhere, ie the config file passed in
         ldapAuth = new LdapAuthenticationHandler(url, baseDN, secPrinc, secCreds, "objectClass", idAttribute);
     }
@@ -217,7 +234,7 @@ public class LDAPAuthentication implements Authentication {
         //Check to see if users authorised.
         if (ldapAuth.authenticate(username,password)) {
             //Return a user object.
-            return getUser(username);
+            return getCustomAttributes((LDAPUser)getUser(username));
         } else {
             throw new AuthenticationException("Invalid password or username.");
         }
@@ -338,14 +355,44 @@ public class LDAPAuthentication implements Authentication {
         //Get a new user object and try to find the users common name
         user_object = new LDAPUser();
         String cn = ldapAuth.getAttr(username,"cn");
-        if (cn.equals("")) {
-            //Initialise the user with displayname the same as the username
-            user_object.init(username);
-        } else {
-            //Initialise the user with different displayname and username
-            user_object.init(username,cn);
-        }
+	    if (cn.equals("")) {
+	        //Initialise the user with displayname the same as the username
+	        user_object.init(username);
+	    } else {
+	        //Initialise the user with different displayname and username
+	        user_object.init(username,cn);
+	    }
         return user_object;
+    }
+    /**
+     * Retrieves user attributes and builds the display name.
+     * 
+     * @param user
+     * @return the same user instance but with the additional attributes.
+     */
+    private User getCustomAttributes(LDAPUser user) {
+    	if (useSystemCredForAttributes) {
+    		ldapAuth.useSystemCred();
+    	}
+    	if (displayNameAttributes != null || displayNameAttributes.size() > 0) {
+    		// use the displayNameAttributes to build the display name
+        	StringBuilder nameBuff = new StringBuilder();
+        	for (String dispNameAttr : displayNameAttributes) {
+        		String nameAttrVal = ldapAuth.getAttr(user.getUsername(), dispNameAttr); 
+        		nameBuff.append(nameAttrVal);
+        		nameBuff.append(displayNameDelimiter);
+        	}
+        	user.set("displayName", nameBuff.toString());
+    	}
+    	if (userAttributes != null && userAttributes.size() > 0) {
+        	log.info("LDAP User retrieving attributes...");
+        	for (String userAttr : userAttributes) {
+        		String attrVal = ldapAuth.getAttr(user.getUsername(), userAttr);
+        		user.set(userAttr, attrVal);
+        		log.info("Retrieved attribute: " + userAttr + ", value:" + attrVal);
+        	}
+        }
+    	return user;
     }
 
     /**

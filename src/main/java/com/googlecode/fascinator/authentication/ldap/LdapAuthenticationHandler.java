@@ -20,6 +20,7 @@
 package com.googlecode.fascinator.authentication.ldap;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -30,7 +31,6 @@ import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
-
 import javax.naming.directory.SearchControls;
 import javax.naming.NamingEnumeration;
 import javax.naming.directory.SearchResult;
@@ -46,6 +46,7 @@ import org.slf4j.LoggerFactory;
  * @author Oliver Lucido and
  * @author Richard Hammond
  * @author Mike Jones
+ * @author Shilo Banihit
  */
 public class LdapAuthenticationHandler {
 
@@ -304,7 +305,7 @@ public class LdapAuthenticationHandler {
 		String filter = "(" + filterPrefix + idAttr + "=" + username + filterSuffix + ")";
 
 		NamingEnumeration<SearchResult> ne = dc.search(baseDn, filter, sc);
-		log.trace(String.format("performing LDAP search using baseDn: %s, filter: %s", baseDn, filter));
+		log.info(String.format("performing LDAP search using baseDn: %s, filter: %s", baseDn, filter));
 		return ne;
 	}
 
@@ -391,6 +392,43 @@ public class LdapAuthenticationHandler {
 
 		return resultList;
 	}
+	
+	/**
+	 * Retrieves the attributes for this user.
+	 * 
+	 * @param username 
+	 * @param attrNames - List of attributes to retrieve from search results
+	 * @return List of maps with attributes as key name
+	 */
+	public List<Map<String,String>> getAttrs(String username, List<String> attrNames) {
+		List<Map<String,String>> resultList = new ArrayList<Map<String, String>>();
+
+		try {
+			DirContext dc = new InitialDirContext(env);
+			NamingEnumeration<SearchResult> ne = performLdapSearch(username, dc);
+
+			while (ne.hasMore()) {
+				SearchResult res = ne.next();
+				HashMap<String,String> map = new HashMap<String,String>();
+				for (String attrName : attrNames) {
+					map.put(attrName, getAttrValue(attrName, res));
+				}
+				resultList.add(map);
+			}
+
+			ne.close();
+			dc.close();
+		} catch (NamingException ne) {
+			log.warn("Failed LDAP lookup getAllAttrs" + username, ne);
+		}
+
+			log.trace("getAllAttrs search result: " + resultList);
+		if (log.isTraceEnabled()) {
+			log.trace("getAllAttrs search result: " + resultList);
+		}
+
+		return resultList;
+	}
 
 	/**
 	 * Searches through the role attribute values and tries to match the given
@@ -442,5 +480,94 @@ public class LdapAuthenticationHandler {
 		log.trace(String.format("getRoles found %d roles for username: %s", roles.size(), username));
 		return new ArrayList<String>(roles);
 
+	}
+	/**
+	 * Performs an LDAP search using the search string and the term(s). The search string should be of String.format().
+	 * 
+	 * Returns a list of 
+	 * 
+	 * @param term - array of values to replace on search string
+	 * @param searchString - must be of String.format()
+	 * @return a list of maps of the attribute. Each attribute in the map contains a list of vales.
+	 * @author Shilo Banihit
+	 */
+	public List<Map<String, List<String> >> getAllAttrValues(String[] term, String searchString) {
+		List<Map<String,List<String> >> resultList = new ArrayList<Map<String, List<String>>>();
+
+		try {
+			DirContext dc = new InitialDirContext(env);
+			NamingEnumeration<SearchResult> ne = performLdapSearch(term, searchString, dc);
+
+			while (ne.hasMore()) {
+				SearchResult res = ne.next();
+				HashMap<String,List<String>> map = new HashMap<String,List<String>>();
+				resultList.add(getAllAttrValue(res, map));
+			}
+
+			ne.close();
+			dc.close();
+		} catch (NamingException ne) {
+			log.warn("Failed LDAP lookup getAllAttrs" + term, ne);
+		}
+
+		log.info("getAllAttrs search result: " + resultList);
+		return resultList;
+	}
+	/**
+	 * Retrieves the map of attributes for this search entry. The values are splitted at ":" and then trimmed for whitespace.
+	 * 
+	 * @param sr
+	 * @param resultMap
+	 * @return a map of attributes for this search entry. Each attribute could possibly contain more than one value, hence the list. 
+	 * @throws NamingException
+	 * @author Shilo Banihit
+	 */
+	private Map<String, List< String>> getAllAttrValue(SearchResult sr, Map<String, List<String>> resultMap) throws NamingException {
+		// Get all attributes
+		Attributes entry = sr.getAttributes();
+		NamingEnumeration<String> ids = entry.getIDs();
+		
+		while(ids.hasMore()) {
+			String id = ids.next();
+			String value = entry.get(id).toString().split(":")[1].trim();
+			List<String> valList = resultMap.get(id);
+			if (valList == null) {
+				valList = new ArrayList<String>();
+				resultMap.put(id, valList);
+			}
+			valList.add(value);
+		}
+		
+		return resultMap;
+	}
+	/**
+	 * Performs an LDAP search using more than one term.
+	 * 
+	 * 
+	 * @param term
+	 * @param searchString - must of String.format()
+	 * @param dc
+	 * @return an enumeration of search results
+	 * @throws NamingException
+	 * @author Shilo Banihit
+	 */
+	private NamingEnumeration<SearchResult> performLdapSearch(String[] term, String searchString, DirContext dc) throws NamingException {
+		SearchControls sc = new SearchControls();
+		sc.setSearchScope(SearchControls.SUBTREE_SCOPE);
+
+		String filter = String.format(searchString, term);
+		log.info(String.format("performing LDAP search using baseDN: %s, filter: %s", baseDn, filter));
+		NamingEnumeration<SearchResult> ne = dc.search(baseDn, filter, sc);
+		
+		return ne;
+	}
+	/**
+	 * Reverts credentials to use system's rather than the currently logged in user.
+	 *
+	 * @author Shilo Banihit
+	 */
+	public void useSystemCred() {
+		env.put(Context.SECURITY_PRINCIPAL, ldapSecurityPrincipal);
+		env.put(Context.SECURITY_CREDENTIALS, ldapSecurityCredentials);
 	}
 }

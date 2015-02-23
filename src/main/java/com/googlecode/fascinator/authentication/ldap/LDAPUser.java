@@ -28,7 +28,7 @@ import com.googlecode.fascinator.common.authentication.GenericUser;
  * @author Richard Hammond
  */
 public class LDAPUser extends GenericUser {
-    private String displayName;
+    public String displayName;
 
     /**
      * Retrieves how the user should be shown on-screen.
