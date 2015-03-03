@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -149,6 +150,8 @@ public class LDAPAuthentication implements Authentication {
     
     /** Optional flag indicating the intention to use of system credential when retrieving user attributes */
     private boolean useSystemCredForAttributes;
+    
+    private HashMap<String, LDAPUser> userCache;
 
     @Override
     public String getId() {
@@ -214,6 +217,7 @@ public class LDAPAuthentication implements Authentication {
         useSystemCredForAttributes = config.getBoolean(new Boolean(false), "authentication", "ldap", "useSystemCredForAttributes");
         //Need to get these values from somewhere, ie the config file passed in
         ldapAuth = new LdapAuthenticationHandler(url, baseDN, secPrinc, secCreds, "objectClass", idAttribute);
+        userCache = new HashMap<String, LDAPUser>();
     }
 
     @Override
@@ -234,7 +238,9 @@ public class LDAPAuthentication implements Authentication {
         //Check to see if users authorised.
         if (ldapAuth.authenticate(username,password)) {
             //Return a user object.
-            return getCustomAttributes((LDAPUser)getUser(username));
+            LDAPUser user = (LDAPUser) getCustomAttributes((LDAPUser)getUser(username));
+            userCache.put(user.getUsername(), user);
+            return user;
         } else {
             throw new AuthenticationException("Invalid password or username.");
         }
@@ -249,7 +255,13 @@ public class LDAPAuthentication implements Authentication {
      */
     @Override
     public void logOut(User user) throws AuthenticationException {
-        // Do nothing
+    	if (user instanceof LDAPUser) {
+    		String username = ((LDAPUser)user).getUsername();
+    		log.info("User logged out, removed from user cache:" + username);
+        	userCache.remove(username);
+    	} else {
+    		log.info("User logged out, but not an LDAPUser, doing nothing.");
+    	}
     }
 
     /**
@@ -352,6 +364,10 @@ public class LDAPAuthentication implements Authentication {
      */
     @Override
     public User getUser(String username) throws AuthenticationException {
+    	// will have to cache, to avoid performance hit when querying every time...
+    	if (userCache.containsKey(username)) {
+    		return userCache.get(username);
+    	}
         //Get a new user object and try to find the users common name
         user_object = new LDAPUser();
         String cn = ldapAuth.getAttr(username,"cn");
@@ -362,6 +378,7 @@ public class LDAPAuthentication implements Authentication {
 	        //Initialise the user with different displayname and username
 	        user_object.init(username,cn);
 	    }
+	    getCustomAttributes(user_object);
         return user_object;
     }
     /**
