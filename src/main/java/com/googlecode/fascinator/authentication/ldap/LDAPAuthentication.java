@@ -374,7 +374,7 @@ public class LDAPAuthentication implements Authentication {
     	if (useSystemCredForAttributes) {
     		ldapAuth.useSystemCred();
     	}
-    	if (displayNameAttributes != null || displayNameAttributes.size() > 0) {
+    	if (displayNameAttributes != null && displayNameAttributes.size() > 0) {
     		// use the displayNameAttributes to build the display name
         	StringBuilder nameBuff = new StringBuilder();
         	for (String dispNameAttr : displayNameAttributes) {
