@@ -37,6 +37,7 @@ import javax.naming.directory.SearchResult;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.Attribute;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -214,6 +215,7 @@ public class LdapAuthenticationHandler {
 			} else {
 				principal = dn;
 			}
+			log.debug("principal string is:" + principal);
 			env.put(Context.SECURITY_PRINCIPAL, principal);
 			env.put(Context.SECURITY_CREDENTIALS, password);
 			DirContext ctx = new InitialDirContext(env);
@@ -264,17 +266,25 @@ public class LdapAuthenticationHandler {
 					"com.sun.jndi.ldap.LdapCtxFactory");
 			env1.put(Context.PROVIDER_URL, baseUrl);
 			env1.put(Context.SECURITY_AUTHENTICATION, "simple");
+			if (!ldapSecurityPrincipal.equals("") ) {
+				env1.put(Context.SECURITY_PRINCIPAL, ldapSecurityPrincipal);
+	 			env1.put(Context.SECURITY_CREDENTIALS, ldapSecurityCredentials);
+			}
 			DirContext dc = new InitialDirContext(env1);
 
 			SearchControls sc = new SearchControls();
 			sc.setSearchScope(SearchControls.SUBTREE_SCOPE);
+			//Create the filter
+			String filter = idAttr + "=" + username;
+			if(StringUtils.isNotBlank(filterPrefix) && StringUtils.isNotBlank(filterSuffix) ) {
+				filter = "(" + filterPrefix + idAttr + "=" + username + filterSuffix + ")";
+			}
 
-			// Create the filter
-			String filter = "(" + filterPrefix + idAttr + "=" + username + filterSuffix + ")";
-
+			log.debug(String.format("LDAP search, baseDn: %s, filter: %s", baseDn, filter));
 			// Do the search
 			NamingEnumeration<SearchResult> ne = dc.search(baseDn, filter, sc);
-			log.trace(String.format("LDAP search, baseDn: %s, filter: %s", baseDn, filter));
+			
+			
 
 			if (ne.hasMore()) {
 				SearchResult sr = ne.next();

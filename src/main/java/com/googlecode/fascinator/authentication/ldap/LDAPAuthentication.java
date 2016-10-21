@@ -130,7 +130,6 @@ import org.slf4j.LoggerFactory;
 public class LDAPAuthentication implements Authentication {
     
     /** Logging **/
-    @SuppressWarnings("unused")
     private final Logger log = LoggerFactory.getLogger(LDAPAuthentication.class);
     
     /** User object */
@@ -205,6 +204,7 @@ public class LDAPAuthentication implements Authentication {
      * @throws IOException if fails to initialise
      */
     private void setConfig(JsonSimpleConfig config) throws IOException {
+    	log.debug("Loading the LDAP plugin");
         user_object = new LDAPUser();
         String url = config.getString(null, "authentication", "ldap", "baseURL");
         String baseDN = config.getString(null, "authentication", "ldap", "baseDN");
@@ -218,6 +218,7 @@ public class LDAPAuthentication implements Authentication {
         //Need to get these values from somewhere, ie the config file passed in
         ldapAuth = new LdapAuthenticationHandler(url, baseDN, secPrinc, secCreds, "objectClass", idAttribute);
         userCache = new HashMap<String, LDAPUser>();
+        log.debug("Finished loading the LDAP plugin");
     }
 
     @Override
@@ -236,6 +237,7 @@ public class LDAPAuthentication implements Authentication {
     @Override
     public User logIn(String username, String password) throws AuthenticationException {
         //Check to see if users authorised.
+    	log.debug("Attempting to login via LDAP username: " + username);
         if (ldapAuth.authenticate(username,password)) {
             //Return a user object.
             LDAPUser user = (LDAPUser) getCustomAttributes((LDAPUser)getUser(username));
